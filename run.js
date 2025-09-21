@@ -35,15 +35,16 @@ async function fetchLatestCommitSHA() {
 }
 
 // download and extract ZIP
-function downloadAndExtractZip() {
-  return new Promise((resolve, reject) => {
-    console.log('⬇️  Downloading latest version...');
-    https.get(ZIP_URL, (res) => {
-      res
-        .pipe(unzipper.Extract({ path: TEMP_DIR }))
-        .on('close', resolve)
-        .on('error', reject);
-    });
+async function downloadAndExtractZip() {
+  console.log('⬇️  Downloading latest version...');
+
+  const response = await axios.get(ZIP_URL, { responseType: 'stream' });
+
+  await new Promise((resolve, reject) => {
+    response.data
+      .pipe(unzipper.Extract({ path: TEMP_DIR }))
+      .on('close', resolve)
+      .on('error', reject);
   });
 }
 
