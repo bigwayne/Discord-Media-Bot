@@ -47,3 +47,8 @@ OMDB_API_KEY=<OMDB_API_KEY>
 | DISCORD_CHANNEL_ID | The numeric Channel ID of the Discord Channel that you want the bot to listen for commands in. | To enable Developer Mode: **Discord** -> **User Settings (⚙️ icon)** -> **Advanced** (under **App Settings**) -> Toggle **Developer Mode**. To find the Channel ID: Right-click on the Channel that you'd like the bot to listen to, and select **Copy Channel ID** |
 | OMDB_API_KEY | The API key used to lookup Movie and TV Show titles when using the `!watching` command. | [OMDB Website](https://www.omdbapi.com/apikey.aspx), you can select the Free tier to get started, but consider supporting them! |
 6. Run either `node .` or `node run` and wait for a successful login.
+
+### Uninteresting Notes
+
+Discord Message Colors: Embed colors will change based on the genre of Movie/TV being linked, or by platform (Youtube links are Red). Here's a vibe-coded chart of what colors represent what, if you're curious:
+![IMDB Genre Colors](readme_files/imdb_colors.png "IMDB Genre Colors")
