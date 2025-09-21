@@ -123,4 +123,4 @@ async function handleOmdb(title, voiceChannelLink, message) {
     }
 }
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.DISCORD_BOT_TOKEN);
