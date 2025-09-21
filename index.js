@@ -86,6 +86,7 @@ async function handleYouTube(link, voiceChannelLink, message) {
             )
             .setColor(0xff0000); // YouTube red
 
+        await message.delete(); // remove the user's command to hide other embeds
         return await message.channel.send({ embeds: [embed] });
     } catch (err) {
         console.error('YouTube fetch error:', err);
@@ -116,6 +117,7 @@ async function handleOmdb(title, voiceChannelLink, message) {
             )
             .setColor(genreColor);
 
+        await message.delete();
         return await message.channel.send({ embeds: [embed] });
     } catch (err) {
         console.error('OMDb fetch error:', err);
