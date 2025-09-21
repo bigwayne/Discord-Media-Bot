@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const unzipper = require('unzipper');
@@ -6,7 +7,7 @@ const axios = require('axios');
 
 const REPO = 'bigwayne/Discord-Media-Bot';
 const BRANCH = 'master';
-const CHECK_INTERVAL = 10 * 1000; // 10 seconds
+const POLL_INTERVAL = process.env.GITHUB_POLL_INTERVAL || 60 * 1000 // 60 seconds
 const ZIP_URL = `https://github.com/${REPO}/archive/refs/heads/${BRANCH}.zip`;
 const COMMITS_API = `https://api.github.com/repos/${REPO}/commits/${BRANCH}`;
 const TEMP_DIR = './tmp_update';
@@ -89,13 +90,13 @@ function runNpmInstall() {
     });
 }
 
-// Load last known commit
+// load last known commit
 function loadLastCommit() {
     if (!fs.existsSync(LAST_COMMIT_FILE)) return null;
     return fs.readFileSync(LAST_COMMIT_FILE, 'utf-8').trim();
 }
 
-// Save last commit SHA
+// save last commit SHA
 function saveLastCommit(sha) {
     fs.writeFileSync(LAST_COMMIT_FILE, sha);
 }
@@ -116,7 +117,7 @@ async function checkForUpdates() {
         const isFirstRun = !lastSHA;
 
         if (isFirstRun || latestSHA !== lastSHA) {
-            console.log(isFirstRun ? '🆕  First-time setup — pulling latest code...' : `🚨  New commit detected: ${latestSHA}`);
+            console.log(isFirstRun ? '🏃  First-time setup — pulling latest code...' : `🚨  New commit detected: ${latestSHA}`);
 
             stopBot();
             await downloadAndExtractZip();
@@ -128,7 +129,7 @@ async function checkForUpdates() {
             }
             startBot();
         } else {
-            console.log('✅  No new commits.');
+            console.log('😴  No new commits.');
         }
     } catch (err) {
         console.error('❌  Update check failed:', err.message);
@@ -148,5 +149,6 @@ process.on('exit', stopBot);           // On normal exit
 // run an initial check before starting the bot
 (async () => {
     await checkForUpdates();
-    setInterval(checkForUpdates, CHECK_INTERVAL);
+    console.log(`⏱️  Polling for code changes every ${POLL_INTERVAL / 1000} seconds.`);
+    setInterval(checkForUpdates, POLL_INTERVAL);
 })();
