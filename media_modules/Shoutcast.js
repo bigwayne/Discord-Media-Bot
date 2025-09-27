@@ -190,7 +190,7 @@ class Shoutcast {
                     connectionData.currentTrack = newTrack;
                     
                     const trackEmbed = new EmbedBuilder()
-                        .setTitle('🎵  Now Playing')
+                        .setTitle('🎵 Now Playing')
                         .setDescription(newTrack)
                         .addFields(
                             { name: 'Station', value: currentInfo.name || 'Unknown', inline: true },
@@ -244,37 +244,13 @@ class Shoutcast {
     }
 
     async getShoutcastInfo(url) {
-        try {
-            // try to get stream metadata (works with many shoutcast streams)
-            const metadataUrl = url.replace(/\/$/, '') + '/7.html';
-            const response = await axios.get(metadataUrl, {
-                timeout: 3000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (compatible; DiscordBot)'
-                }
-            });
-
-            // parse shoutcast 7.html format: currentListeners,streamStatus,peakListeners,maxListeners,uniqueListeners,bitRate,currentSong
-            const data = response.data.split(',');
-            
-            return {
-                name: 'Shoutcast Radio',
-                genre: 'Various',
-                currentSong: data[6] || null,
-                listeners: data[0] || '0',
-                bitRate: data[5] || 'Unknown'
-            };
-        } catch (error) {
-            // fallback to basic info if metadata not available
-            console.log(`Could not fetch stream metadata: ${error.message}`);
-            return {
+        return {
                 name: 'Shoutcast Radio',
                 genre: 'Various',
                 currentSong: 'Unknown Track',
                 listeners: '0',
                 bitRate: 'Unknown'
-            };
-        }
+        };
     }
 }
 
