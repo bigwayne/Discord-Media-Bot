@@ -1,15 +1,22 @@
 const { EmbedBuilder } = require('discord.js');
+const EnvConfig = require('../utils/EnvConfig');
 
 class ExampleModule {
     constructor() {
         this.name = 'ExampleModule';
         this.commands = ['!example', '!demo'];
         this.description = 'Example module demonstrating the modular system structure';
+        this.channelIds = EnvConfig.validateChannelIds(this.name);
     }
 
     // check if this module should handle the message
     shouldHandle(message) {
         if (message.author.bot) return false;
+        
+        // check if message is from allowed channels
+        if (this.channelIds.length > 0 && !this.channelIds.includes(message.channel.id)) {
+            return false;
+        }
         
         // handle messages that start with any of our commands
         return this.commands.some(cmd => message.content.startsWith(cmd));
@@ -36,6 +43,7 @@ class ExampleModule {
             .addFields(
                 { name: 'Module Name', value: this.name, inline: true },
                 { name: 'Commands', value: this.commands.join(', '), inline: true },
+                { name: 'Active Channels', value: this.channelIds.length > 0 ? this.channelIds.join(', ') : 'All channels', inline: true },
                 { name: 'How it works', value: 'Each module is a class with shouldHandle() and handle() methods', inline: false }
             )
             .setColor(0x00ff00); // green

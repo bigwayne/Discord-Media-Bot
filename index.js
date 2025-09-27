@@ -30,12 +30,17 @@ function loadModules() {
     
     for (const file of moduleFiles) {
         try {
-            const ModuleClass = require(path.join(modulesPath, file));
+            // clear cache for hot reload
+            const modulePath = path.join(modulesPath, file);
+            delete require.cache[require.resolve(modulePath)];
+            
+            const ModuleClass = require(modulePath);
             const moduleInstance = new ModuleClass();
             
             modules.set(moduleInstance.name, moduleInstance);
             console.log(`✅  Loaded module: ${moduleInstance.name}`);
             console.log(`   Commands: ${moduleInstance.commands.join(', ')}`);
+            console.log(`   Channel IDs: ${moduleInstance.channelIds?.join(', ') || 'None configured'}`);
             console.log(`   Description: ${moduleInstance.description}`);
         } catch (error) {
             console.error(`❌  Failed to load module ${file}:`, error.message);
@@ -58,7 +63,7 @@ client.on('messageCreate', async (message) => {
     for (const [name, module] of modules) {
         try {
             if (module.shouldHandle && module.shouldHandle(message)) {
-                console.log(`📨  Module ${name} handling message: ${message.content}`);
+                console.log(`📨  Module ${name} handling message: ${message.content.substring(0, 100)}...`);
                 await module.handle(message);
                 return; // stop after first module handles the message
             }
