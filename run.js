@@ -23,6 +23,19 @@ function stopBot() {
     if (botProcess) {
         console.log('🛑  Stopping index.js...');
         botProcess.kill();
+        botProcess = null;
+    }
+}
+
+// safely delete .last_commit file with error handling
+function deleteLastCommitFile() {
+    try {
+        if (fs.existsSync(LAST_COMMIT_FILE)) {
+            fs.unlinkSync(LAST_COMMIT_FILE);
+            console.log('🗑️  Deleted .last_commit file for fresh start on next run');
+        }
+    } catch (err) {
+        console.error('⚠️  Failed to delete .last_commit file:', err.message);
     }
 }
 
@@ -139,12 +152,38 @@ async function checkForUpdates() {
 function cleanupAndExit() {
     console.log('\n👋  Shutting down...');
     stopBot();
+    deleteLastCommitFile(); // delete .last_commit to force fresh download on next start
     process.exit();
 }
 
-process.on('SIGINT', cleanupAndExit);  // Ctrl+C
-process.on('SIGTERM', cleanupAndExit); // Termination (e.g. kill)
-process.on('exit', stopBot);           // On normal exit
+// handle multiple shutdown signals and ensure cleanup only runs once
+let shutdownInProgress = false;
+function handleShutdown(signal) {
+    if (shutdownInProgress) return;
+    shutdownInProgress = true;
+    console.log(`\n📡  Received ${signal}`);
+    cleanupAndExit();
+}
+
+process.on('SIGINT', () => handleShutdown('SIGINT'));   // Ctrl+C
+process.on('SIGTERM', () => handleShutdown('SIGTERM')); // Termination (e.g. kill)
+process.on('exit', () => {
+    if (!shutdownInProgress) {
+        stopBot();
+        deleteLastCommitFile();
+    }
+});
+
+// handle uncaught exceptions to ensure cleanup
+process.on('uncaughtException', (err) => {
+    console.error('💥  Uncaught exception:', err);
+    cleanupAndExit();
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('💥  Unhandled rejection at:', promise, 'reason:', reason);
+    cleanupAndExit();
+});
 
 // run an initial check before starting the bot
 (async () => {
