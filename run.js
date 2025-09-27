@@ -4,6 +4,7 @@ const path = require('path');
 const unzipper = require('unzipper');
 const { execSync, spawn } = require('child_process');
 const axios = require('axios');
+const PermissionUtils = require('./utils/PermissionUtils.js');
 
 const REPO = 'bigwayne/Discord-Media-Bot';
 const BRANCH = 'master';
@@ -114,6 +115,24 @@ function saveLastCommit(sha) {
     fs.writeFileSync(LAST_COMMIT_FILE, sha);
 }
 
+// generate authorization URL using permissions util
+function generateBotInviteUrl() {
+    try {
+        const permissionUtils = new PermissionUtils();
+        const clientId = process.env.DISCORD_CLIENT_ID;
+        
+        if (!clientId) {
+            console.error('❌  DISCORD_CLIENT_ID not found in environment variables');
+            return null;
+        }
+
+        return permissionUtils.generateAuthUrl(clientId, 'MEDIA_BOT');
+    } catch (error) {
+        console.error('❌  Failed to generate invite URL:', error.message);
+        return null;
+    }
+}
+
 // polling loop
 async function checkForUpdates() {
     try {
@@ -137,8 +156,15 @@ async function checkForUpdates() {
             copyFiles();
             await runNpmInstall();
             saveLastCommit(latestSHA);
+            
             if (isFirstRun) {
-                console.log(`🚨  Remember to Add your Discord App to your Server! https://discord.com/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&scope=bot&permissions=268446752`)
+                const inviteUrl = generateBotInviteUrl();
+                if (inviteUrl) {
+                    console.log(`🚨  Bot setup complete! Add your Discord App to your Server:`);
+                    console.log(`    ${inviteUrl}`);
+                } else {
+                    console.log('⚠️  Could not generate invite URL. Please check your DISCORD_CLIENT_ID environment variable.');
+                }
             }
             startBot();
         } else {
